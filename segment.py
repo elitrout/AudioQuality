@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 """
 Get 30-second excerpt in the middle of the song. Flac to Wav conversion using ffmpeg.
+Usage:
+    python segment.py
 
 """
 
@@ -21,8 +23,10 @@ for dirName, subdirList, fileList in os.walk(audioDir):
     os.mkdir(outputDir + '/' + dirName[2: ])
     i = 0
     for fname in fileList:
+        # get only first 5 songs
         if i >= 5:
             break
+
         if fname[-5: ] == '.flac':
             inputFlac = os.path.join(dirName[2: ], fname)
             outputWav = os.path.join(outputDir, dirName[2: ] + '/' + fname[: -5] + '.wav')
