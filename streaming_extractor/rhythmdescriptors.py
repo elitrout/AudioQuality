@@ -19,15 +19,17 @@
 
 import sys, os
 import essentia, essentia.standard, essentia.streaming
-from essentia.streaming import RhythmExtractor2013, BPMHistogramDescriptors
+from essentia.streaming import RhythmExtractor2013, BpmHistogramDescriptors
 
 class RhythmDescriptorsExtractor(essentia.streaming.CompositeBase):
 
     def __init__(self):
         super(RhythmDescriptorsExtractor, self).__init__()
 
-        rhythm = RhythmExtractor()
-        bpmHist = BPMHistogramDescriptors()
+        # rhythm = RhythmExtractor()    # outdated
+        rhythm = RhythmExtractor2013()
+
+        bpmHist = BpmHistogramDescriptors()
 
         rhythm.bpmIntervals >> bpmHist.bpmIntervals
 
@@ -39,6 +41,7 @@ class RhythmDescriptorsExtractor(essentia.streaming.CompositeBase):
         self.outputs['bpm'] = rhythm.bpm
         self.outputs['bpm_estimates'] = rhythm.estimates
         self.outputs['bpm_intervals'] = rhythm.bpmIntervals
+        self.outputs['bpm_confidence'] = rhythm.confidence
         self.outputs['first_peak_bpm'] = bpmHist.firstPeakBPM
         self.outputs['first_peak_weight'] = bpmHist.firstPeakWeight
         self.outputs['first_peak_spread'] = bpmHist.firstPeakSpread
