@@ -112,7 +112,8 @@ class LowLevelSpectralExtractor(essentia.streaming.CompositeBase):
         tc = SpectralComplexity(magnitudeThreshold=0.005)
         spec.spectrum >> tc.spectrum
         # pitch detection:
-        pitch = PitchDetection(frameSize=frameSize)
+        # pitch = PitchDetection(frameSize=frameSize)    # outdated
+        pitch = PitchYinFFT(frameSize=frameSize)
         spec.spectrum >> pitch.spectrum
         # pitch salience:
         ps = PitchSalience()
