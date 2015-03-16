@@ -164,7 +164,7 @@ if __name__ == '__main__':
 
     readMetadata(input_file, pool)
     INFO('Process step 1: Replay Gain')
-    replaygain.compute(input_file, pool, startTime, endTime)
+    # replaygain.compute(input_file, pool, startTime, endTime)
 
     segments_namespace=[]
     if opt.segmentation:
