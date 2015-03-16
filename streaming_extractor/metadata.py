@@ -21,6 +21,7 @@
 
 import essentia
 from essentia import *
+from essentia import standard
 from essentia.streaming import *
 
 analysisSampleRate = 44100.0
@@ -35,7 +36,8 @@ def getAnalysisMetadata(pool):
     if 'metadata.audio_properties.analysis_sample_rate' in descriptorNames:
         sampleRate = pool['metadata.audio_properties.analysis_sample_rate']
     else:
-        INFO('Warning: analysis sample rate was not found in pool. Using ', analysisSampleRate)
+        # INFO('Warning: analysis sample rate was not found in pool. Using ', analysisSampleRate)
+        INFO('Warning: analysis sample rate was not found in pool. Using ' + str(analysisSampleRate))
         sampleRate = analysisSampleRate
     if 'metadata.audio_properties.downmix' in descriptorNames:
         downmix = pool['metadata.audio_properties.downmix']
@@ -45,18 +47,31 @@ def getAnalysisMetadata(pool):
     return rgain, sampleRate, downmix
 
 def readMetadata(filename, pool, failOnError=True):
-    metadata = streaming.MetadataReader(filename=filename, failOnError=failOnError)
-    metadata.title >> (pool, 'metadata.tags.title')
-    metadata.artist >> (pool, 'metadata.tags.artist')
-    metadata.album >> (pool, 'metadata.tags.album')
-    metadata.comment >> (pool, 'metadata.tags.comment')
-    metadata.genre >> (pool, 'metadata.tags.genre')
-    metadata.track >> (pool, 'metadata.tags.track')
-    metadata.year >> (pool, 'metadata.tags.year')
-    metadata.length >> None  # let audio loader take care of this
-    metadata.bitrate >> (pool, 'metadata.audio_properties.bitrate')
-    metadata.sampleRate >> None # let the audio loader take care of this
-    metadata.channels >> (pool, 'metadata.audio_properties.channels')
-    run(metadata)
+    # a workaround for some MetadataReader() problem
+    metadata = standard.MetadataReader(filename=filename, failOnError=failOnError)
+    pool.set('metadata.tags.title', metadata()[0])
+    pool.set('metadata.tags.artist', metadata()[1])
+    pool.set('metadata.tags.album', metadata()[2])
+    pool.set('metadata.tags.comment', metadata()[3])
+    pool.set('metadata.tags.genre', metadata()[4])
+    pool.set('metadata.tags.track', metadata()[5])
+    pool.set('metadata.tags.year', metadata()[6])
+    pool.set('metadata.audio_properties.bitrate', metadata()[9])
+    pool.set('metadata.audio_properties.analysis_sample_rate', float(metadata()[10]))
+    pool.set('metadata.audio_properties.channels', metadata()[11])
+
+    # metadata = streaming.MetadataReader(filename=filename, failOnError=failOnError)
+    # metadata.title >> (pool, 'metadata.tags.title')
+    # metadata.artist >> (pool, 'metadata.tags.artist')
+    # metadata.album >> (pool, 'metadata.tags.album')
+    # metadata.comment >> (pool, 'metadata.tags.comment')
+    # metadata.genre >> (pool, 'metadata.tags.genre')
+    # metadata.track >> (pool, 'metadata.tags.track')
+    # metadata.year >> (pool, 'metadata.tags.year')
+    # metadata.length >> None  # let audio loader take care of this
+    # metadata.bitrate >> (pool, 'metadata.audio_properties.bitrate')
+    # metadata.sampleRate >> None # let the audio loader take care of this
+    # metadata.channels >> (pool, 'metadata.audio_properties.channels')
+    # run(metadata)
 
 
