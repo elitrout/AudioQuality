@@ -55,7 +55,8 @@ def compute(source, pool, startTime=0, endTime=1e6, namespace='',
                                             beats=ticks)
     source >> beatsLoudness.signal
     beatsLoudness.loudness >> (pool, rhythmspace + 'beats_loudness')
-    beatsLoudness.loudnessBass >> (pool, rhythmspace + 'beats_loudness_bass')
+    # beatsLoudness.loudnessBass >> (pool, rhythmspace + 'beats_loudness_bass')    # outdated
+    beatsLoudness.loudnessBandRatio >> (pool, rhythmspace + 'beats_loudness_bandratio')
 
 
 usage = 'midlevel.py [options] <inputfilename> <outputfilename>'
