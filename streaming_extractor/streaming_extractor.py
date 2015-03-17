@@ -142,6 +142,93 @@ def computeMidLevel(input_file, pool, startTime, endTime, namespace=''):
     midlevel.compute(loader.audio, pool, startTime, endTime, namespace)
     essentia.run(loader)
 
+def streamingExtractor(input_file, output_file, startTime = None, endTime = None):
+
+    opt, args = parse_args()
+
+    if len(args) != 2: #3:
+        print "Incorrect number of arguments\n", essentia_usage
+        sys.exit(1)
+
+
+    #profile = args[0]
+    # input_file = args[0]
+    # output_file = args[1]
+
+    pool = Pool()
+    if startTime == None:
+        startTime = float(opt.startTime)
+    if endTime == None:
+        endTime = float(opt.endTime)
+
+    # compute descriptors
+
+    readMetadata(input_file, pool)
+    INFO('Process step 1: Replay Gain')
+    # replaygain.compute(input_file, pool, startTime, endTime)
+
+    segments_namespace=[]
+    if opt.segmentation:
+        INFO('Process step 2: Low Level')
+        computeLowLevel(input_file, pool, startTime, endTime)
+        segmentation.compute(input_file, pool, startTime, endTime)
+        segments = pool['segmentation.timestamps']
+        for i in xrange(len(segments)-1):
+            startTime = segments[i]
+            endTime = segments[i+1]
+
+            INFO('**************************************************************************')
+            INFO('Segment ' + str(i) + ': processing audio from ' + str(startTime) + 's to ' + str(endTime) + 's')
+            INFO('**************************************************************************')
+
+            # set segment name:
+            segment_name = 'segment_'+ str(i)
+            pool.set('segments.'+segment_name+'.name', segment_name)
+            # set segment scope:
+            pool.set('segments.'+segment_name+'.scope', numpy.array([startTime, endTime]))
+            # compute descriptors:
+            namespace = 'segments.'+segment_name+'.descriptors'
+            segments_namespace.append(namespace)
+            INFO('\tProcess step 2: Low Level')
+            computeLowLevel(input_file, pool, startTime, endTime, namespace)
+            INFO('\tProcess step 3: Mid Level')
+            computeMidLevel(input_file, pool, startTime, endTime, namespace)
+            INFO('\tProcess step 4: High Level')
+            highlevel.compute(pool, namespace)
+
+        # compute the rest of the descriptors for the entire audio. LowLevel
+        # descriptors were already computed during segmentation
+        startTime = float(opt.startTime)
+        audio_length = pool['metadata.audio_properties.length']
+        endTime = float(opt.endTime)
+        if endTime > audio_length: endTime = audio_length
+        INFO('**************************************************************************')
+        INFO('processing entire audio from ' + str(startTime) + 's to ' + str(endTime) + 's')
+        INFO('**************************************************************************')
+        INFO('Process step 3: Mid Level')
+        computeMidLevel(input_file, pool, startTime, endTime)
+        INFO('Process step 4: High Level')
+        highlevel.compute(pool)
+
+    else:
+        INFO('Process step 2: Low Level')
+        computeLowLevel(input_file, pool, startTime, endTime)
+        INFO('Process step 3: Mid Level')
+        computeMidLevel(input_file, pool, startTime, endTime)
+        INFO('Process step 4: High Level')
+        highlevel.compute(pool)
+
+    # compute statistics
+    INFO('Process step 5: Aggregation')
+    stats = computeAggregation(pool, segments_namespace)
+
+    # svm
+    #addSVMDescriptors(stats, opt.svmpath)
+
+    # output results to file
+    INFO('writing results to ' + output_file)
+    standard.YamlOutput(filename=output_file)(stats)
+
 
 if __name__ == '__main__':
 
