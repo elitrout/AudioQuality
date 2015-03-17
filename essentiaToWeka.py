@@ -50,6 +50,8 @@ def toWeka(pathGiven, label, clusters):
 			#write descriptors details (once)
 			if descriptor_flag == 0:
 				attr_list = ""
+                                # write filename as an attribute
+                                attr_list = attr_list + "@ATTRIBUTE filename string\n"
 				for i in descriptorList:
                                         # avoid problematic features
                                         if i in ignoreList:
@@ -70,6 +72,10 @@ def toWeka(pathGiven, label, clusters):
 			
 			#write the data points
 			data_entry = ""
+                        # write filename. replace space and comma in filename.
+                        attr_filename = fname.replace(' ', '')
+                        attr_filename = attr_filename.replace(',', '_')
+                        data_entry = data_entry + attr_filename + ','
 			for i in descriptorList:
                                 # avoid problematic features
                                 if i in ignoreList:
